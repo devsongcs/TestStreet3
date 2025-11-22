@@ -6,5 +6,5 @@ public sealed class CustomColumn
 {
     public string Name { get; set; } = string.Empty;
     public DataType DataType { get; set; }
-    public FormatOptions Options { get; set; } = default!;
+    public FieldOptions Options { get; set; } = default!;
 }

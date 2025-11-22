@@ -14,9 +14,11 @@ export type Field = {
 }
 
 export type FieldConfig = {
+  id?: string
   title: string
   dataCnt: number
   format: 'JSON' | 'CSV'
   fields: Field[]
+  fileName?: string
 }
 

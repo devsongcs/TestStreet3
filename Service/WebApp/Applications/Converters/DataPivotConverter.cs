@@ -2,9 +2,9 @@ namespace WebApp.Applications.Converters;
 
 public static class DataPivotConverter
 {   
-    public static IReadOnlyList<string> ColumnToRow(Dictionary<(int Idx, string Name), IReadOnlyList<string>> dataSets, int dataCnt)
+    public static IReadOnlyList<string> ColumnToRow(Dictionary<string, IReadOnlyList<string>> dataSets, int dataCnt)
     {
-        var names = dataSets.Keys.Select(key => key.Name).ToList();
+        var names = dataSets.Keys.ToList();
 
         var rows = new List<string>();
 

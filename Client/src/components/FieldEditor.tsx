@@ -29,15 +29,16 @@ import {
   Grid,
   Checkbox,
   FormControlLabel,
+  InputAdornment,
 } from '@mui/material'
 import type { Field } from '../types'
 
 const TYPE_OPTIONS = [
-  'LineId',
-  'PartId',
-  'StepId',
-  'CustomString',
-  'CustomNumber'
+  '라인 ID',
+  '제품 ID',
+  '스텝 ID',
+  'String 데이터',
+  'Number 데이터'
 ]
 
 function uid() {
@@ -47,9 +48,10 @@ function uid() {
 type FieldEditorProps = {
   initialTitle?: string
   initialDataCnt?: number
-  initialFormat?: 'JSON' | 'CSV'
+  initialFormat?:  'CSV' | 'JSON'
   initialFields?: Field[]
-  onSave?: (title: string, dataCnt: number, format: 'JSON' | 'CSV', fields: Field[]) => void
+  initialFileName?: string
+  onSave?: (title: string, dataCnt: number, format: 'CSV' | 'JSON', fields: Field[], fileName: string) => void
   onClose?: () => void
   isDialog?: boolean
 }
@@ -57,8 +59,9 @@ type FieldEditorProps = {
 export default function FieldEditor({ 
   initialTitle = '',
   initialDataCnt = 10,
-  initialFormat = 'JSON',
-  initialFields, 
+  initialFormat = 'CSV',
+  initialFields,
+  initialFileName = '',
   onSave, 
   onClose, 
   isDialog = false 
@@ -70,8 +73,12 @@ export default function FieldEditor({
   
   const [title, setTitle] = useState<string>(initialTitle)
   const [dataCnt, setDataCnt] = useState<number>(initialDataCnt)
-  const [format, setFormat] = useState<'JSON' | 'CSV'>(initialFormat)
+  const [format, setFormat] = useState<'CSV' | 'JSON'>(initialFormat)
   const [fields, setFields] = useState<Field[]>(initialFields || defaultFields)
+  const [scheduleEnabled, setScheduleEnabled] = useState<boolean>(false)
+  const [scheduleUnit, setScheduleUnit] = useState<'hour' | 'day'>('hour')
+  const [scheduleValue, setScheduleValue] = useState<number>(1)
+  const [fileName, setFileName] = useState<string>(initialFileName)
   
   useEffect(() => {
     if (initialTitle !== undefined) {
@@ -86,10 +93,14 @@ export default function FieldEditor({
     if (initialFields) {
       setFields(initialFields)
     }
-  }, [initialTitle, initialDataCnt, initialFormat, initialFields])
+    if (initialFileName !== undefined) {
+      setFileName(initialFileName)
+    }
+  }, [initialTitle, initialDataCnt, initialFormat, initialFields, initialFileName])
   const [exportJson, setExportJson] = useState('')
   const [apiResult, setApiResult] = useState<string | null>(null)
   const [apiGrid, setApiGrid] = useState<{ headers: string[]; rows: string[][] } | null>(null)
+  const [previewFileName, setPreviewFileName] = useState<string>('')
   const [sending, setSending] = useState(false)
   const [tab, setTab] = useState(1)
   const [typeDialogOpen, setTypeDialogOpen] = useState(false)
@@ -129,7 +140,24 @@ export default function FieldEditor({
   }
 
   function updateOptions(id: string, options: Field['options']) {
-    setFields((s) => s.map((f) => (f.id === id ? { ...f, options } : f)))
+    const updatedFields = fields.map((f) => (f.id === id ? { ...f, options } : f))
+    setFields(updatedFields)
+    
+    // "제목" 체크박스 체크 시 파일명에 Field Name을 {} 중괄호로 추가
+    const currentField = updatedFields.find((f) => f.id === id)
+    if (currentField && (currentField.type === '라인 ID' || currentField.type === '제품 ID' || currentField.type === '스텝 ID')) {
+      if (options?.setTitle) {
+        // 체크박스가 체크되면 현재 파일명에 Field Name을 {} 중괄호로 추가
+        const fieldNameToAdd = `{${currentField.name}}`
+        if (!fileName.includes(fieldNameToAdd)) {
+          setFileName(fileName + fieldNameToAdd)
+        }
+      } else {
+        // 체크박스가 해제되면 파일명에서 해당 Field Name 제거
+        const fieldNameToRemove = `{${currentField.name}}`
+        setFileName(fileName.replace(fieldNameToRemove, ''))
+      }
+    }
   }
 
   function exportFields() {
@@ -144,12 +172,18 @@ export default function FieldEditor({
       const payload = fields.map(({ name, type, options }) => ({ name, type, options }))
       // dynamic import to avoid circular issues in some setups
       const api = await import('../api')
-      const res = await api.createTestDatas(payload, dataCnt, 'JSON')
+      const res = await api.previewTestData(payload, dataCnt, fileName)
+
+      // Backend returns { fileName, dataSets } 형태
+      const fileNameResult = res.fileName || ''
+      const dataSets = res.dataSets || res
+
+      setPreviewFileName(fileNameResult || '')
 
       // Backend returns IReadOnlyList<string> where first item is header CSV
-      if (Array.isArray(res)) {
+      if (Array.isArray(dataSets)) {
         // Expect array of CSV lines
-        const lines: string[] = res as string[]
+        const lines: string[] = dataSets as string[]
         if (lines.length > 0) {
           const headers = lines[0].split(',')
           // Preview에서는 최대 100개까지만 표시
@@ -164,7 +198,7 @@ export default function FieldEditor({
       } else {
         // fallback: stringify any other shape
         setApiGrid(null)
-        setApiResult(JSON.stringify(res, null, 2))
+        setApiResult(JSON.stringify(dataSets, null, 2))
       }
       
       // 다이얼로그 모드일 때 Preview 다이얼로그 열기
@@ -253,7 +287,7 @@ export default function FieldEditor({
 
   function handleSave() {
     if (onSave) {
-      onSave(title, dataCnt, format, fields)
+      onSave(title, dataCnt, format, fields, fileName)
     }
   }
 
@@ -282,7 +316,7 @@ export default function FieldEditor({
           
           {/* 1. 설정 제목 */}
           <TextField
-            label="파일명"
+            label="설정 제목"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="설정 제목을 입력하세요"
@@ -304,8 +338,8 @@ export default function FieldEditor({
             }}
           />
           
-          {/* 2. Data Count + Format */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          {/* 2. Data Count + Format + 스케줄링 */}
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <TextField
               label="Data Count"
               size="small"
@@ -348,12 +382,88 @@ export default function FieldEditor({
                 labelId="format-label"
                 value={format} 
                 label="Format" 
-                onChange={(e) => setFormat(e.target.value as 'JSON' | 'CSV')}
+                onChange={(e) => setFormat(e.target.value as 'CSV' | 'JSON')}
               >
-                <MenuItem value={'JSON'}>JSON</MenuItem>
                 <MenuItem value={'CSV'}>CSV</MenuItem>
+                <MenuItem value={'JSON'}>JSON</MenuItem>
               </Select>
             </FormControl>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={scheduleEnabled}
+                    onChange={(e) => setScheduleEnabled(e.target.checked)}
+                    sx={{
+                      color: '#667eea',
+                      '&.Mui-checked': {
+                        color: '#667eea',
+                      },
+                    }}
+                  />
+                }
+                label="스케줄링 사용"
+                sx={{ m: 0 }}
+              />
+              {scheduleEnabled && (
+                <TextField
+                  label="스케줄링"
+                  size="small"
+                  type="number"
+                  value={scheduleValue}
+                  onChange={(e) => setScheduleValue(Number(e.target.value || 1))}
+                  inputProps={{ min: 1 }}
+                  disabled={!scheduleEnabled}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Select
+                          value={scheduleUnit}
+                          onChange={(e) => setScheduleUnit(e.target.value as 'hour' | 'day')}
+                          disabled={!scheduleEnabled}
+                          sx={{
+                            '& .MuiSelect-select': {
+                              py: 0.5,
+                              px: 1,
+                              fontSize: '0.875rem',
+                            },
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              border: 'none',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              border: 'none',
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              border: 'none',
+                            },
+                          }}
+                        >
+                          <MenuItem value={'hour'}>시간</MenuItem>
+                          <MenuItem value={'day'}>일</MenuItem>
+                        </Select>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ 
+                    width: 200,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      background: 'white',
+                      '&:hover fieldset': {
+                        borderColor: '#667eea',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#667eea',
+                        borderWidth: 2,
+                      },
+                      '&.Mui-disabled': {
+                        background: 'rgba(0, 0, 0, 0.05)',
+                      },
+                    }
+                  }}
+                />
+              )}
+            </Box>
           </Box>
         </Box>
       ) : (
@@ -363,9 +473,31 @@ export default function FieldEditor({
       )}
       
       <Box sx={{ flex: 1, overflow: 'auto', p: isDialog ? 3 : 2 }}>
+          {/* 파일명 설정 */}
+          <TextField
+            label="파일명"
+            value={fileName}
+            onChange={(e) => setFileName(e.target.value)}
+            placeholder="파일명을 입력하세요"
+            fullWidth
+            size="small"
+            sx={{ 
+              mb: 2.5,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                background: 'white',
+                '&:hover fieldset': {
+                  borderColor: '#667eea',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#667eea',
+                  borderWidth: 2,
+                },
+              }
+            }}
+          />
 
-
-      <div style={{ overflowX: 'auto' }}>
+      <div>
         <TableContainer 
           component={Paper} 
           sx={{
@@ -986,6 +1118,21 @@ export default function FieldEditor({
           Preview
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
+          {previewFileName && (
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                mb: 2, 
+                p: 1.5,
+                background: 'rgba(102, 126, 234, 0.1)',
+                borderRadius: 1,
+                fontWeight: 600,
+                color: '#667eea'
+              }}
+            >
+              파일명: {previewFileName || '(없음)'}
+            </Typography>
+          )}
           {apiResult ? (
             <Typography color="error" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>{apiResult}</Typography>
           ) : apiGrid ? (
