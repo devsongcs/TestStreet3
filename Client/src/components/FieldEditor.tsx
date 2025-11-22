@@ -38,6 +38,7 @@ const TYPE_OPTIONS = [
   '제품 ID',
   '스텝 ID',
   'String 데이터',
+  'String 데이터 2',
   'Number 데이터'
 ]
 
@@ -107,6 +108,7 @@ export default function FieldEditor({
   const [dialogFieldId, setDialogFieldId] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<'기준정보' | '데이터'>('기준정보')
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
+  const [stringListInputs, setStringListInputs] = useState<Record<string, string>>({})
 
   function addField() {
     setFields((s) => [...s, { id: uid(), name: '', type: TYPE_OPTIONS[0] }])
@@ -125,6 +127,8 @@ export default function FieldEditor({
       if (f.id === id) {
         if (type === 'String 데이터') {
           return { ...f, type, options: { minLength: f.options?.minLength ?? 1, maxLength: f.options?.maxLength ?? 10 } }
+        } else if (type === 'String 데이터 2') {
+          return { ...f, type, options: { stringList: f.options?.stringList } }
         } else if (type === 'Number 데이터') {
           return { ...f, type, options: { minValue: f.options?.minValue ?? 1, maxValue: f.options?.maxValue ?? 100, decimal: f.options?.decimal ?? 0 } }
         } else if (type === '라인 ID' || type === '제품 ID') {
@@ -257,8 +261,11 @@ export default function FieldEditor({
   function formatOptionsSummary(type: string) {
     switch (type) {
       case 'String 데이터':
+        return 'Min Length\nMax Length\n\n'
+      case 'String 데이터 2':
+        return '["example1","example2"]\n\n\n'
       case 'Number 데이터':
-        return '-'
+        return 'Min Value\nMax Value\nDecimal'
       case '라인 ID':
         return 'PFBF\nKFBN\nKFBK'
       case '제품 ID':
@@ -536,6 +543,69 @@ export default function FieldEditor({
                           sx={{ width: 150 }}
                         />
                       </Box>
+                    ) : f.type === 'String 데이터 2' ? (
+                      <TextField
+                        label="문자열 배열"
+                        size="small"
+                        value={stringListInputs[f.id] !== undefined ? stringListInputs[f.id] : (f.options?.stringList ? JSON.stringify(f.options.stringList) : '')}
+                        onChange={(e) => {
+                          const inputValue = e.target.value
+                          // 입력 중인 값을 별도로 저장
+                          setStringListInputs(prev => ({ ...prev, [f.id]: inputValue }))
+                          
+                          // 빈 문자열이면 undefined로 설정
+                          if (inputValue === '') {
+                            updateOptions(f.id, { ...f.options, stringList: undefined })
+                            return
+                          }
+                          
+                          try {
+                            const parsed = JSON.parse(inputValue)
+                            if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
+                              updateOptions(f.id, { ...f.options, stringList: parsed })
+                            }
+                          } catch {
+                            // JSON 파싱 실패 시 무시 (입력 중일 수 있음)
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // 포커스를 잃을 때 입력값 정리
+                          const inputValue = e.target.value
+                          if (inputValue === '') {
+                            setStringListInputs(prev => {
+                              const newState = { ...prev }
+                              delete newState[f.id]
+                              return newState
+                            })
+                            return
+                          }
+                          try {
+                            const parsed = JSON.parse(inputValue)
+                            if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
+                              // 유효한 JSON이면 입력값 정리
+                              setStringListInputs(prev => {
+                                const newState = { ...prev }
+                                delete newState[f.id]
+                                return newState
+                              })
+                            }
+                          } catch {
+                            // 파싱 실패 시 입력값 유지
+                          }
+                        }}
+                        placeholder='["example1","example2"]'
+                        fullWidth
+                        error={(() => {
+                          const displayValue = stringListInputs[f.id] !== undefined ? stringListInputs[f.id] : (f.options?.stringList ? JSON.stringify(f.options.stringList) : '')
+                          if (!displayValue) return false
+                          try {
+                            const parsed = JSON.parse(displayValue)
+                            return !Array.isArray(parsed) || !parsed.every(item => typeof item === 'string')
+                          } catch {
+                            return true
+                          }
+                        })()}
+                      />
                     ) : f.type === 'Number 데이터' ? (
                       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                         <TextField
@@ -996,7 +1066,7 @@ export default function FieldEditor({
                         </Card>
                       </Grid>
                     ))
-                  : ['String 데이터', 'Number 데이터'].map((type) => (
+                  : ['String 데이터', 'String 데이터 2', 'Number 데이터'].map((type) => (
                       <Grid item xs={12} sm={6} md={4} key={type}>
                         <Card 
                           sx={{ 

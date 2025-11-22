@@ -60,7 +60,8 @@ export default function FieldList() {
     1: '제품 ID', // StdPartId
     2: '스텝 ID', // StdStepId
     3: 'String 데이터', // CustomDataToString
-    4: 'Number 데이터', // CustomDataToNumber
+    4: 'String 데이터 2', // CustomDataToString2
+    5: 'Number 데이터', // CustomDataToNumber
   }
 
   // CustomRule을 FieldConfig로 변환
@@ -77,6 +78,7 @@ export default function FieldList() {
         minValue: col.options?.minValue || undefined,
         maxValue: col.options?.maxValue || undefined,
         decimal: col.options?.decimal || undefined,
+        stringList: col.options?.customValues || undefined,
       },
     }))
 

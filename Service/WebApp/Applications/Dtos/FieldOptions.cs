@@ -13,6 +13,7 @@ public sealed class FieldOptions
     public DataFormatType FormatType { get; set; }
     public int MinLength { get; set; }
     public int MaxLength { get; set; }
+    public List<string> CustomValues { get; set; } = [];
 
     //Number
     public int MinValue { get; set; }

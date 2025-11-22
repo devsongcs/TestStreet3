@@ -18,8 +18,10 @@ const TypeNameMap: Record<string, string> = {
   '제품 ID': 'PartId',
   '스텝 ID': 'StepId',
   'String 데이터': 'CustomString',
+  'String 데이터 2': 'CustomString2',
   'Number 데이터': 'CustomNumber',
   'CustomString': 'CustomString',
+  'CustomString2': 'CustomString2',
   'CustomNumber': 'CustomNumber',
 }
 
@@ -29,7 +31,8 @@ const DataTypeMap: Record<string, number> = {
   PartId: 1, // StdPartId
   StepId: 2, // StdStepId
   CustomString: 3, // CustomDataToString
-  CustomNumber: 4, // CustomDataToNumber
+  CustomString2: 4, // CustomDataToString2
+  CustomNumber: 5, // CustomDataToNumber
 }
 
 export async function createTestDatas(fields: Field[], dataCnt = 10, resultType = 'JSON', fileName = '') {
@@ -47,6 +50,7 @@ export async function createTestDatas(fields: Field[], dataCnt = 10, resultType 
         minValue: f.options?.minValue ?? 0,
         maxValue: f.options?.maxValue ?? 0,
         decimal: f.options?.decimal ?? 0,
+        customValues: f.options?.stringList ?? [],
       },
     }
   })
@@ -117,6 +121,7 @@ export async function previewTestData(fields: Field[], dataCnt = 10, fileName = 
         minValue: f.options?.minValue ?? 0,
         maxValue: f.options?.maxValue ?? 0,
         decimal: f.options?.decimal ?? 0,
+        customValues: f.options?.stringList ?? [],
       },
     }
   })
@@ -167,6 +172,7 @@ export async function createRule(rule: {
         minValue: f.options?.minValue ?? 0,
         maxValue: f.options?.maxValue ?? 0,
         decimal: f.options?.decimal ?? 0,
+        customValues: f.options?.stringList ?? [],
       },
     }
   })

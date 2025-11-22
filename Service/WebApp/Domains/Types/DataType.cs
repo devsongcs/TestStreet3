@@ -7,5 +7,6 @@ public enum DataType
     StdStepId,
 
     CustomDataToString,
+    CustomDataToString2,
     CustomDataToNumber,
 }

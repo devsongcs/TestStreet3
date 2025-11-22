@@ -10,6 +10,7 @@ export type Field = {
     decimal?: number
     setTitle?: boolean
     pno?: string
+    stringList?: string[]
   }
 }
 
