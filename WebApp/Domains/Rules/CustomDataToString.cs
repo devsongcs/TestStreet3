@@ -1,5 +1,3 @@
-
-using Microsoft.Extensions.Options;
 using WebApp.Applications.Dtos;
 using WebApp.Domains.Types;
 

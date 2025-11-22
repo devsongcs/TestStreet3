@@ -26,6 +26,9 @@ public class GenDataSetService
             DataType.StdStepId => StepId.GetFaker(new Faker(), dataCnt),
             DataType.CustomDataToString => 
                 CustomDataToString.GetFaker(new Faker(), column.Options, dataCnt),
+            DataType.CustomDataToNumber =>
+                CustomDataToNumber.GetFaker(new Faker(), column.Options, dataCnt)
+                    .Select(n => n.ToString()).ToList(),
             _ => Enumerable.Repeat(string.Empty, dataCnt).ToList()
         };
 }
