@@ -61,4 +61,27 @@ public class ApiController : ControllerBase
 
         return Ok(new { success = true });
     }
+
+    [HttpPost("generate-data")]
+    public async Task<IActionResult> GenerateTestData(
+        [FromQuery] string? fileName,
+        [FromBody][Required] List<CustomColumn> columns,
+        [FromQuery][Required] int dataCnt,
+        [FromQuery][Required] FileFormatType fileFormatType)
+    {
+        if (columns == null || columns.Count == 0)
+            return BadRequest("Columns are required.");
+
+        var fileNameValue = string.IsNullOrEmpty(fileName) ? string.Empty : fileName;
+        var res = await _mediator.Send(new GenerateTestData.Request(fileNameValue, columns, dataCnt, fileFormatType));
+
+        // 파일명을 Content-Disposition 헤더에 명시적으로 설정
+        var fileBytes = System.Text.Encoding.UTF8.GetBytes(res.Content);
+        var result = File(fileBytes, res.ContentType, res.FileName);
+        
+        // Content-Disposition 헤더에 파일명 명시 (한글 및 특수문자 처리)
+        result.FileDownloadName = res.FileName;
+        
+        return result;
+    }
 }

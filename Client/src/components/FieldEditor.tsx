@@ -246,22 +246,7 @@ export default function FieldEditor({
     try {
       const payload = fields.map(({ name, type, options }) => ({ name, type, options }))
       const api = await import('../api')
-      const res = await api.createTestDatas(payload, dataCnt, format)
-
-      if (format === 'CSV') {
-        // res may be { csv: string } or string
-        const csv = typeof res === 'string' ? res : res?.csv ?? ''
-        if (!csv) throw new Error('Empty CSV from API')
-        downloadFile(`dataset-${Date.now()}.csv`, csv, 'text/csv')
-      } else {
-        // format JSON: backend returns array of CSV lines
-        if (Array.isArray(res)) {
-          const objs = csvLinesToObjects(res as string[])
-          downloadFile(`dataset-${Date.now()}.json`, JSON.stringify(objs, null, 2), 'application/json')
-        } else {
-          downloadFile(`dataset-${Date.now()}.json`, JSON.stringify(res, null, 2), 'application/json')
-        }
-      }
+      await api.createTestDatas(payload, dataCnt, format, fileName)
     } catch (err: any) {
       setApiResult(err?.message ?? String(err))
     } finally {
@@ -311,12 +296,12 @@ export default function FieldEditor({
               backgroundClip: 'text',
             }}
           >
-            필드 설정
+            Rule 설정
           </Typography>
           
           {/* 1. 설정 제목 */}
           <TextField
-            label="설정 제목"
+            label="Rule 제목"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="설정 제목을 입력하세요"
@@ -385,7 +370,7 @@ export default function FieldEditor({
                 onChange={(e) => setFormat(e.target.value as 'CSV' | 'JSON')}
               >
                 <MenuItem value={'CSV'}>CSV</MenuItem>
-                <MenuItem value={'JSON'}>JSON</MenuItem>
+                <MenuItem value={'JSON'} disabled>JSON (비활성화됨)</MenuItem>
               </Select>
             </FormControl>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -555,24 +540,69 @@ export default function FieldEditor({
                       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                         <TextField
                           label="Min"
+                          type="number"
                           size="small"
                           value={f.options?.minValue ?? 1}
-                          onChange={(e) => updateOptions(f.id, { ...f.options, minValue: Number(e.target.value) || 1 })}
-                          sx={{ width: 150 }}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? 1 : Number(e.target.value)
+                            updateOptions(f.id, { ...f.options, minValue: isNaN(val) ? 1 : val })
+                          }}
+                          sx={{ 
+                            width: 150,
+                            '& input[type=number]': {
+                              MozAppearance: 'textfield',
+                            },
+                            '& input[type=number]::-webkit-outer-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                            '& input[type=number]::-webkit-inner-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                          }}
                         />
                         <TextField
                           label="Max"
+                          type="number"
                           size="small"
                           value={f.options?.maxValue ?? 0}
                           onChange={(e) => updateOptions(f.id, { ...f.options, maxValue: Number(e.target.value) || 0 })}
-                          sx={{ width: 150 }}
+                          sx={{ 
+                            width: 150,
+                            '& input[type=number]': {
+                              MozAppearance: 'textfield',
+                            },
+                            '& input[type=number]::-webkit-outer-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                            '& input[type=number]::-webkit-inner-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                          }}
                         />
                         <TextField
                           label="Decimal"
+                          type="number"
                           size="small"
                           value={f.options?.decimal ?? 0}
                           onChange={(e) => updateOptions(f.id, { ...f.options, decimal: Number(e.target.value) || 0 })}
-                          sx={{ width: 150 }}
+                          sx={{ 
+                            width: 150,
+                            '& input[type=number]': {
+                              MozAppearance: 'textfield',
+                            },
+                            '& input[type=number]::-webkit-outer-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                            '& input[type=number]::-webkit-inner-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                          }}
                         />
                       </Box>
                     ) : f.type === '라인 ID' || f.type === '제품 ID' ? (

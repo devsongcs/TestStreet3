@@ -196,26 +196,7 @@ export default function FieldList() {
     try {
       const config = fieldConfigs[index]
       const payload = config.fields.map(({ name, type, options }) => ({ name, type, options }))
-      const res = await createTestDatas(payload, config.dataCnt, config.format)
-
-      if (config.format === 'CSV') {
-        const csv = typeof res === 'string' ? res : res?.csv ?? ''
-        if (!csv) throw new Error('Empty CSV from API')
-        downloadFile(`${config.title}-${Date.now()}.csv`, csv, 'text/csv')
-      } else {
-        if (Array.isArray(res)) {
-          const headers = res[0].split(',')
-          const rows = res.slice(1).map((ln) => ln.split(','))
-          const objs = rows.map((row) => {
-            const obj: Record<string, string> = {}
-            headers.forEach((h, i) => (obj[h] = row[i] ?? ''))
-            return obj
-          })
-          downloadFile(`${config.title}-${Date.now()}.json`, JSON.stringify(objs, null, 2), 'application/json')
-        } else {
-          downloadFile(`${config.title}-${Date.now()}.json`, JSON.stringify(res, null, 2), 'application/json')
-        }
-      }
+      await createTestDatas(payload, config.dataCnt, config.format, config.fileName || '')
     } catch (err: any) {
       alert(`오류: ${err?.message ?? String(err)}`)
     } finally {
