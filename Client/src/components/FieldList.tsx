@@ -25,6 +25,7 @@ import {
   TableCell,
   TableBody,
   Paper,
+  Container,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
@@ -308,71 +309,53 @@ export default function FieldList() {
         pointerEvents: 'none',
       }
     }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        mb: 5,
-        flexWrap: 'wrap',
-        gap: 2,
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <Box>
-          <Typography 
-            variant="h2" 
-            sx={{ 
-              fontWeight: 800,
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              background: 'linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #ffffff 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              mb: 1,
-              textShadow: '0 2px 20px rgba(255, 255, 255, 0.3)',
-              letterSpacing: '-0.02em'
+      {/* 메인 컨텐츠 */}
+      <Container maxWidth="xl" sx={{ py: 4, px: { xs: 2, sm: 3, md: 4 }, position: 'relative', zIndex: 1 }}>
+        {/* 타이틀 및 카드 추가 버튼 */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+          <Box>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                mb: 0.5
+              }}
+            >
+              TestStreet3
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+              테스트 데이터 생성 도구
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddNew}
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: 2,
+              boxShadow: '0 4px 14px 0 rgba(102, 126, 234, 0.39)',
+              textTransform: 'none',
+              fontSize: '1rem',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5568d3 0%, #6a4190 100%)',
+                boxShadow: '0 6px 20px 0 rgba(102, 126, 234, 0.5)',
+                transform: 'translateY(-2px)',
+              },
+              transition: 'all 0.3s ease',
             }}
           >
-            TestStreet3
-          </Typography>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              color: 'rgba(255, 255, 255, 0.95)',
-              fontWeight: 500,
-              fontSize: { xs: '0.9rem', sm: '1rem' },
-              textShadow: '0 1px 10px rgba(0, 0, 0, 0.2)'
-            }}
-          >
-            테스트 데이터 생성 및 관리 플랫폼
-          </Typography>
+            카드 추가
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddNew}
-          sx={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)',
-            color: '#667eea',
-            fontWeight: 700,
-            px: 4,
-            py: 1.75,
-            borderRadius: 3,
-            boxShadow: '0 8px 24px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(102, 126, 234, 0.4)',
-            textTransform: 'none',
-            fontSize: '1.05rem',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)',
-              boxShadow: '0 12px 32px rgba(255, 255, 255, 0.4), 0 6px 16px rgba(102, 126, 234, 0.5)',
-              transform: 'translateY(-3px) scale(1.02)',
-            },
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
-          새 규칙 추가
-        </Button>
-      </Box>
 
       {loading ? (
         <Box sx={{ 
@@ -907,8 +890,9 @@ export default function FieldList() {
             닫기
           </Button>
         </DialogActions>
-      </Dialog>
+        </Dialog>
+      </Container>
     </Box>
-  )
-}
+    )
+  }
 

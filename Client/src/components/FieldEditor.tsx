@@ -30,7 +30,9 @@ import {
   Checkbox,
   FormControlLabel,
   InputAdornment,
+  IconButton,
 } from '@mui/material'
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import type { Field } from '../types'
 
 const TYPE_OPTIONS = [
@@ -109,6 +111,8 @@ export default function FieldEditor({
   const [selectedCategory, setSelectedCategory] = useState<'기준정보' | '데이터'>('기준정보')
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
   const [stringListInputs, setStringListInputs] = useState<Record<string, string>>({})
+  const [draggedFieldId, setDraggedFieldId] = useState<string | null>(null)
+  const [dragOverFieldId, setDragOverFieldId] = useState<string | null>(null)
 
   function addField() {
     setFields((s) => [...s, { id: uid(), name: '', type: TYPE_OPTIONS[0] }])
@@ -116,6 +120,54 @@ export default function FieldEditor({
 
   function removeField(id: string) {
     setFields((s) => s.filter((f) => f.id !== id))
+  }
+
+  function handleDragStart(e: React.DragEvent, fieldId: string) {
+    setDraggedFieldId(fieldId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', fieldId)
+  }
+
+  function handleDragOver(e: React.DragEvent, fieldId: string) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (draggedFieldId !== fieldId) {
+      setDragOverFieldId(fieldId)
+    }
+  }
+
+  function handleDragLeave() {
+    setDragOverFieldId(null)
+  }
+
+  function handleDrop(e: React.DragEvent, targetFieldId: string) {
+    e.preventDefault()
+    setDragOverFieldId(null)
+    
+    if (!draggedFieldId || draggedFieldId === targetFieldId) {
+      setDraggedFieldId(null)
+      return
+    }
+
+    setFields((s) => {
+      const draggedIndex = s.findIndex((f) => f.id === draggedFieldId)
+      const targetIndex = s.findIndex((f) => f.id === targetFieldId)
+      
+      if (draggedIndex === -1 || targetIndex === -1) return s
+      
+      const newFields = [...s]
+      const [removed] = newFields.splice(draggedIndex, 1)
+      newFields.splice(targetIndex, 0, removed)
+      
+      return newFields
+    })
+    
+    setDraggedFieldId(null)
+  }
+
+  function handleDragEnd() {
+    setDraggedFieldId(null)
+    setDragOverFieldId(null)
   }
 
   function updateName(id: string, name: string) {
@@ -502,15 +554,47 @@ export default function FieldEditor({
           <MuiTable size="small">
             <TableHead>
               <TableRow sx={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }}>
-                <TableCell sx={{ width: '30%', px: 2, py: 1.5, fontWeight: 700, color: '#1e293b' }}>Field Name</TableCell>
+                <TableCell sx={{ width: '5%', px: 1, py: 1.5 }} />
+                <TableCell sx={{ width: '25%', px: 2, py: 1.5, fontWeight: 700, color: '#1e293b' }}>Field Name</TableCell>
                 <TableCell sx={{ width: '15%', px: 2, py: 1.5, fontWeight: 700, color: '#1e293b' }}>Type</TableCell>
-                <TableCell sx={{ width: '45%', px: 2, py: 1.5, fontWeight: 700, color: '#1e293b' }}>Options</TableCell>
-                <TableCell sx={{ width: '10%', px: 2, py: 1.5 }} />
+                <TableCell sx={{ width: '40%', px: 2, py: 1.5, fontWeight: 700, color: '#1e293b' }}>Options</TableCell>
+                <TableCell sx={{ width: '15%', px: 2, py: 1.5 }} />
               </TableRow>
             </TableHead>
             <TableBody>
               {fields.map((f) => (
-                <TableRow key={f.id}>
+                <TableRow 
+                  key={f.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, f.id)}
+                  onDragOver={(e) => handleDragOver(e, f.id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, f.id)}
+                  onDragEnd={handleDragEnd}
+                  sx={{
+                    cursor: 'move',
+                    opacity: draggedFieldId === f.id ? 0.5 : 1,
+                    backgroundColor: dragOverFieldId === f.id ? 'rgba(102, 126, 234, 0.1)' : 'transparent',
+                    transition: 'background-color 0.2s ease',
+                    '&:hover': {
+                      backgroundColor: draggedFieldId ? 'transparent' : 'rgba(0, 0, 0, 0.04)',
+                    },
+                  }}
+                >
+                  <TableCell sx={{ px: 1, py: 1.5 }}>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        cursor: 'grab',
+                        color: '#667eea',
+                        '&:active': {
+                          cursor: 'grabbing',
+                        },
+                      }}
+                    >
+                      <DragIndicatorIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
                   <TableCell sx={{ px: 1 }}>
                     <TextField
                       value={f.name}
