@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Applications;
-using WebApp.Applications.Dtos;
+using WebApp.Applications.Dtos.CustomRules;
 using WebApp.Domains.Types;
 
 namespace WebApp.Adapters.Presentations;

@@ -1,5 +1,5 @@
 using MediatR;
-using WebApp.Applications.Dtos;
+using WebApp.Applications.Dtos.CustomRules;
 using WebApp.Applications.Ports;
 
 namespace WebApp.Applications;

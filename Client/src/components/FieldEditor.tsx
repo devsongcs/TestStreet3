@@ -78,9 +78,11 @@ export default function FieldEditor({
   const [dataCnt, setDataCnt] = useState<number>(initialDataCnt)
   const [format, setFormat] = useState<'CSV' | 'JSON'>(initialFormat)
   const [fields, setFields] = useState<Field[]>(initialFields || defaultFields)
+  /* 스케줄 관련 기능은 서버에서 주석 처리되어 클라이언트에서도 비활성화합니다.
   const [scheduleEnabled, setScheduleEnabled] = useState<boolean>(false)
   const [scheduleUnit, setScheduleUnit] = useState<'hour' | 'day'>('hour')
   const [scheduleValue, setScheduleValue] = useState<number>(1)
+  */
   const [fileName, setFileName] = useState<string>(initialFileName)
   
   useEffect(() => {
@@ -383,7 +385,7 @@ export default function FieldEditor({
           />
           
           {/* 2. Data Count + Format + 스케줄링 */}
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <TextField
               label="Data Count"
               size="small"
@@ -432,6 +434,7 @@ export default function FieldEditor({
                 <MenuItem value={'JSON'} disabled>JSON (비활성화됨)</MenuItem>
               </Select>
             </FormControl>
+            {/* 스케줄 관련 UI는 서버에서 제거되어 클라이언트에서도 주석 처리합니다.
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <FormControlLabel
                 control={
@@ -508,6 +511,7 @@ export default function FieldEditor({
                 />
               )}
             </Box>
+            */}
           </Box>
         </Box>
       ) : (

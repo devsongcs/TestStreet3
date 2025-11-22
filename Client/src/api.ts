@@ -152,9 +152,6 @@ export async function createRule(rule: {
   title: string
   dataCount: number
   resultType: 'CSV' | 'JSON'
-  useSchedule: boolean
-  scheduleInterval: number
-  scheduleType: 'hour' | 'day'
   fileName: string
   columns: Field[]
 }) {
@@ -182,9 +179,7 @@ export async function createRule(rule: {
     title: rule.title,
     dataCount: rule.dataCount,
     resultType: rule.resultType === 'CSV' ? 0 : 1, // FileFormatType: CSV=0, JSON=1
-    useSchedule: rule.useSchedule,
-    scheduleInterval: rule.scheduleInterval,
-    scheduleType: rule.scheduleType === 'hour' ? 0 : 1, // ScheduleType: Hour=0, Day=1
+    // schedule fields removed because backend no longer expects them
     fileName: rule.fileName,
     columns: columns,
   }

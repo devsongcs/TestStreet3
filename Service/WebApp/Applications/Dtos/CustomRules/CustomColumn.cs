@@ -1,6 +1,6 @@
 using WebApp.Domains.Types;
 
-namespace WebApp.Applications.Dtos;
+namespace WebApp.Applications.Dtos.CustomRules;
 
 public sealed class CustomColumn
 {

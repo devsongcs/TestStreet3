@@ -1,7 +1,7 @@
 using System;
 using MediatR;
 using WebApp.Applications.Converters;
-using WebApp.Applications.Dtos;
+using WebApp.Applications.Dtos.CustomRules;
 using WebApp.Domains.Services;
 using WebApp.Domains.Types;
 

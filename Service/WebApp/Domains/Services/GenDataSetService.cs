@@ -1,5 +1,5 @@
 
-using WebApp.Applications.Dtos;
+using WebApp.Applications.Dtos.CustomRules;
 using WebApp.Domains.Rules;
 using WebApp.Domains.Types;
 

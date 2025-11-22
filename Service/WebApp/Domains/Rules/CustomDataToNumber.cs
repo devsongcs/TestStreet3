@@ -1,4 +1,4 @@
-using WebApp.Applications.Dtos;
+using WebApp.Applications.Dtos.CustomRules;
 using WebApp.Domains.Types;
 
 namespace WebApp.Domains.Rules;

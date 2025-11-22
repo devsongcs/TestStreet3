@@ -164,9 +164,6 @@ export default function FieldList() {
         title,
         dataCount: dataCnt,
         resultType: format,
-        useSchedule: false, // TODO: FieldEditor에서 schedule 정보를 받아오도록 수정 필요
-        scheduleInterval: 1,
-        scheduleType: 'hour',
         fileName: fileName || `${title}.${format.toLowerCase()}`,
         columns: fields,
       })
