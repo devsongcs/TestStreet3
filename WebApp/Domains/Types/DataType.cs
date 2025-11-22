@@ -2,8 +2,10 @@ namespace WebApp.Domains.Types;
 
 public enum DataType
 {
-    LineId,
-    ProcessId,
-    PartId,
-    StepId
+    StdLineId,
+    StdPartId,
+    StdStepId,
+
+    CustomDataToString,
+    CustomDataToNumber,
 }

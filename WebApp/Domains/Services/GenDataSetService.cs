@@ -7,13 +7,13 @@ namespace WebApp.Domains.Services;
 
 public class GenDataSetService
 {
-    public Dictionary<string, IReadOnlyList<string>> GenerateDataSets(List<CustomColumn> columns, int dataCnt)
+    public Dictionary<(int Idx, string Name), IReadOnlyList<string>> GenerateDataSets(List<CustomColumn> columns, int dataCnt)
     {
-        Dictionary<string, IReadOnlyList<string>> dataSets = new();
+        Dictionary<(int Idx, string Name), IReadOnlyList<string>> dataSets = new();
 
+        int idx = 0;
         foreach (var column in columns)
-            dataSets.Add(column.Name, GenerateDatas(column, dataCnt));
-
+            dataSets.Add((idx++, column.Name), GenerateDatas(column, dataCnt));
         return dataSets;
     }
 
@@ -21,8 +21,11 @@ public class GenDataSetService
     private IReadOnlyList<string> GenerateDatas(CustomColumn column, int dataCnt) =>
         column.DataType switch
         {
-            DataType.LineId => LineId.GetFaker(new Faker(), dataCnt),
-            DataType.PartId => PartId.GetFaker(new Faker(), dataCnt),
-            _ => new List<string>()
+            DataType.StdLineId => LineId.GetFaker(new Faker(), dataCnt),
+            DataType.StdPartId => PartId.GetFaker(new Faker(), dataCnt),
+            DataType.StdStepId => StepId.GetFaker(new Faker(), dataCnt),
+            DataType.CustomDataToString => 
+                CustomDataToString.GetFaker(new Faker(), column.Options, dataCnt),
+            _ => Enumerable.Repeat(string.Empty, dataCnt).ToList()
         };
 }

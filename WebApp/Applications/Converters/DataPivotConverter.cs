@@ -2,18 +2,18 @@ namespace WebApp.Applications.Converters;
 
 public static class DataPivotConverter
 {   
-    public static IReadOnlyList<string> ColumnToRow(Dictionary<string, IReadOnlyList<string>> dataSets, int dataCnt)
+    public static IReadOnlyList<string> ColumnToRow(Dictionary<(int Idx, string Name), IReadOnlyList<string>> dataSets, int dataCnt)
     {
-        var keys = dataSets.Keys.ToList();
+        var names = dataSets.Keys.Select(key => key.Name).ToList();
 
         var rows = new List<string>();
 
-        rows.Add(string.Join(",", keys));
+        rows.Add(string.Join(",", names));
 
         for (int i = 0; i < dataCnt; i++)
         {
-            var values = new List<string>(keys.Count);
-            foreach (var k in keys)
+            var values = new List<string>(dataSets.Keys.Count);
+            foreach (var k in dataSets.Keys)
                 values.Add(dataSets[k][i]);
             
             rows.Add(string.Join(",", values));

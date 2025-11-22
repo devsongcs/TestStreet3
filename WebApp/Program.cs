@@ -1,7 +1,11 @@
 using Microsoft.OpenApi.Models;
 using MediatR;
+using WebApp.Applications.Ports;
+using WebApp.Adapters.Infrastructures.FileSystems;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton<ILocalFileSystem, LocalFileSystem>();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -22,17 +26,13 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
+app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "TestStreet3 v1");
         // Serve Swagger UI at application root (https://localhost:5001/)
         c.RoutePrefix = string.Empty;
     });
-}
 
 // Map controller routes and enable HTTPS redirection
 app.MapControllers();
